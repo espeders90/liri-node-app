@@ -1,9 +1,10 @@
 console.log("hello Liri");
 var request = require('request');
+var fs = require('fs');
 
 // var twitterKeys = require('./keys.js');
 var Twitter = require('twitter');
-var omdb = require('omdb');
+// var omdb = require('omdb');
 
 //var client = Twitter(twitterKeys);
 var client = new Twitter({
@@ -13,22 +14,25 @@ var client = new Twitter({
   access_token_secret: 'yfdTrcQgsLzhIF6og5tY47QexYtdXslbekwwryFgzVpes'
 });
 
+//Spotify variables
 var Spotify = require('node-spotify-api');
-
 var spotify = new Spotify({
   id: "4cc7c6444ad240829cead2921f1199d1",
   secret: "7980d6fcf11d4361b0a9b8885cb66b54"
 });
+var songName = process.argv[3];
 
-
-
+//Movie variables
 var movieName = "";
 for (var i = 3; i < process.argv.length; i++) {
   movieName += process.argv[i];
 }
 console.log("test:" + movieName);
-
 var queryUrl = "http://www.omdbapi.com/?t=" + movieName + "&apikey=trilogy";
+
+
+//end of global variables, start of my-tweets -> spotify-this-song -> movie-this
+
 
 switch (process.argv[2]) {
   case 'my-tweets':
@@ -42,13 +46,19 @@ switch (process.argv[2]) {
         //console.log(JSON.stringify(tweets[i], null, 2));
       }
     });
-    console.log(process.argv[2]);
     break;
+    // end of my-tweets
 
+    //start of spotify
   case 'spotify-this-song':
-    spotify.search({ type: 'track', query: process.argv[3], limit: 3 }, function(error, data) {
+    if (songName == undefined) {
+      songName = "The Sign by Ace of Base";
+      console.log("No User input for the Song Name. Default is the 'Sign' by Ace of Base");
+    }
+
+    spotify.search({ type: 'track', query: songName, limit: 3 }, function(error, data) {
       console.log(error);
-      console.log("Artists:");
+      console.log("artists:");
       for (var i in data.tracks.items[0].artists) {
         console.log(data.tracks.items[0].artists[i].name);
       }
@@ -56,10 +66,16 @@ switch (process.argv[2]) {
       console.log("Preview link: " + data.tracks.items[0].preview_url);
       console.log("The album: " + data.tracks.items[0].album.name);
     });
-    console.log(process.argv[2]);
     break;
+    //end of spotify    
 
+    //start of movie-this
   case 'movie-this':
+    if (movieName == undefined) {
+      movieName = "Mr.Nobody";
+      console.log("No user input for the Movie Name. Default is 'Mr.Nobody'");
+    }
+
     request(queryUrl, function(error, response, body) {
       console.log("Movie name: " + movieName);
       console.log(error);
@@ -74,14 +90,20 @@ switch (process.argv[2]) {
       console.log("Plot of the movie: " + body.Plot);
       console.log("Actors in the movie: " + body.Actors);
     });
-    console.log(process.argv[2]);
+
     break;
+    //end of movie-this
 
   case "do-what-it-says":
-    console.log(process.argv[2]);
-    break;
-
-  default:
+    fs.readFile("random.txt", "utf8", function(error, data) {
+      if (error) {
+        return console.log(error);
+      }
+      data = data.split(",");
+      console.log(data);
+      var dataArr = data[0];
+      console.log(dataArr);
+    });
     break;
 
 }
